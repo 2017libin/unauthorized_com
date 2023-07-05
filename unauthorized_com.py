@@ -1,10 +1,7 @@
 import argparse
 import threading
-import socket
-from ftplib import FTP
 from dic import *
 from config import *
-import requests
 import json
 
 def port2service(port):
@@ -162,9 +159,6 @@ def main():
             results[ip] = dict()
         results[ip].update(result)
         lock1.release()
-        # else:
-        #     results[ip].append(result)
-        # results.append({ip_t:result})
     
     threads = []
     for ip in ipmap.keys():
@@ -185,8 +179,6 @@ def main():
             with open(args.output, 'a+') as f:
                 results_json = json.dumps(results, sort_keys=False, indent=4, separators=(',', ': '), ensure_ascii=False)
                 f.write(results_json+'\n')
-                # for result in results:
-                #     f.write(str(result) + '\n')
         else:
             results_json = json.dumps(results, sort_keys=False, indent=4, separators=(',', ': '), ensure_ascii=False)
             print(results_json+'\n')
@@ -195,32 +187,6 @@ def main():
     for t in threads:
         t.join()
     print('\n[+] ending {0}\n'.format(get_time()))
-    # if args.ip:
-    #     print('\n[*]已加载{0}条检测函数\n'.format(len(services)))
-    #     print('\n[*] starting {0}\n'.format(get_time()))
-    #     worker(args.ip, services)
-    # else:
-    #     with open(args.file, 'r') as f:
-    #         ips = f.read().splitlines()
-
-    #     threads = []
-    #     print('\n[*]已加载{0}条检测函数\n'.format(len(services)))
-    #     print('\n[*] starting {0}\n'.format(get_time()))
-    #     for ip in ips:
-    #         t = threading.Thread(target=worker, args=(ip,))
-    #         threads.append(t)
-    #         t.start()
-    #         if len(threads) >= args.threads:
-    #             for t in threads:
-    #                 t.join()
-    #             threads.clear()
-
-    #     for t in threads:
-    #         t.join()
-
-
-        # for result in results:
-        #     print(result)
 
 
 if __name__ == '__main__':
