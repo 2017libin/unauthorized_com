@@ -5,91 +5,92 @@ from ftplib import FTP
 from dic import *
 from config import *
 import requests
-from kazoo.client import KazooClient
-from pyfiglet import Figlet
+import json
 
+def port2service(port):
+    return "test"
 
 def check_ip(ip, services):
     result = {}
-    result['ip'] = ip
-    if not services or 'zookeeper' in services:
+    # result['ip'] = ip
+    if 'zookeeper' in services:
         result['zookeeper'] = check_zookeeper(ip)
-    if not services or 'ftp' in services:
+    if 'ftp' in services:
         result['ftp'] = check_ftp(ip)
-    if not services or 'wordpress' in services:
+    if 'wordpress' in services:
         result['wordpress'] = check_wordpress(ip)
-    if not services or 'kibana' in services:
+    if 'kibana' in services:
         result['kibana'] = check_kibana(ip)
-    if not services or 'thinkadminv6' in services:
+    if 'thinkadminv6' in services:
         result['thinkadminv6'] = check_thinkadmin_v6(ip)
-    if not services or 'apachespark' in services:
+    if 'apachespark' in services:
         result['apachespark'] = check_apache_spark(ip)
-    if not services or 'kubernetes' in services:
+    if 'kubernetes' in services:
         result['kubernetes'] = check_kubernetes_api_server(ip)
-    if not services or 'btphpmyadmin' in services:
+    if 'btphpmyadmin' in services:
         result['btphpmyadmin'] = check_bt_phpmyadmin(ip)
-    if not services or 'actuator' in services:
+    if 'actuator' in services:
         result['actuator'] = check_spring_boot_actuator(ip)
-    if not services or 'docker' in services:
+    if 'docker' in services:
         result['docker'] = check_docker(ip)
-    if not services or 'zabbix' in services:
+    if 'zabbix' in services:
         result['zabbix'] = check_zabbix(ip)
-    if not services or 'dubbo' in services:
+    if 'dubbo' in services:
         result['dubbo'] = check_dubbo(ip)
-    if not services or 'dockerregistry' in services:
+    if 'dockerregistry' in services:
         result['dockerregistry'] = check_docker_registry(ip)
-    if not services or 'ipc' in services:
+    if 'ipc' in services:
         result['ipc'] = check_ipc(ip)
-    if not services or 'redis' in services:
+    if 'redis' in services:
         result['redis'] = check_redis(ip)
-    if not services or 'jenkins' in services:
+    if 'jenkins' in services:
         result['jenkins'] = check_jenkins(ip)
-    if not services or 'druid' in services:
+    if 'druid' in services:
         result['druid'] = check_druid(ip)
 
-    if not services or 'couchdb' in services:
+    if 'couchdb' in services:
         result['couchdb'] = check_couchdb(ip)
-    if not services or 'uwsgi' in services:
+    if 'uwsgi' in services:
         result['uwsgi'] = check_uwsgi(ip)
-    if not services or 'hadoopyarn' in services:
+    if 'hadoopyarn' in services:
         result['hadoopyarn'] = check_hadoop_yarn(ip)
-    if not services or 'harbor' in services:
+    if 'harbor' in services:
         result['harbor'] = check_harbor(ip)
-    if not services or 'swaggerui' in services:
+    if 'swaggerui' in services:
         result['swaggerui'] = check_swaggerui(ip)
-    if not services or 'activemq' in services:
+    if 'activemq' in services:
         result['activemq'] = check_activemq(ip)
 
-    if not services or 'jupyter' in services:
+    if 'jupyter' in services:
         result['jupyter'] = check_jupyter_notebook(ip)
-    if not services or 'phpfpm' in services:
+    if 'phpfpm' in services:
         result['phpfpm'] = check_php_fpm_fastcgi(ip)
-    if not services or 'rabbitmq' in services:
+    if 'rabbitmq' in services:
         result['rabbitmq'] = check_rabbitmq(ip)
-    if not services or 'atlassian' in services:
+    if 'atlassian' in services:
         result['atlassian'] = check_atlassian_crowd(ip)
-    if not services or 'ldap' in services:
+    if 'ldap' in services:
         result['ldap'] = check_ldap(ip)
-    if not services or 'weblogic' in services:
+    if 'weblogic' in services:
         result['weblogic'] = check_weblogic(ip)
-    if not services or 'nfs' in services:
+    if 'nfs' in services:
         result['nfs'] = check_nfs(ip)
-    if not services or 'vnc' in services:
+    if 'vnc' in services:
         result['vnc'] = check_vnc(ip)
-    if not services or 'solr' in services:
+    if 'solr' in services:
         result['solr'] = check_solr(ip)
-    if not services or 'jboss' in services:
+    if 'jboss' in services:
         result['jboss'] = check_jboss(ip)
-    if not services or 'kong' in services:
+    if 'kong' in services:
         result['kong'] = check_kong(ip)
-    if not services or 'rsync' in services:
+    if 'rsync' in services:
         result['rsync'] = check_rsync(ip)
-    if not services or 'mongodb' in services:
+    if 'mongodb' in services:
         result['mongodb'] = check_mongodb(ip)
-    if not services or 'memcached' in services:
+    if 'memcached' in services:
         result['memcached'] = check_memcached(ip)
 
-    if not services or 'elasticsearch' in services:
+    if 'elasticsearch' in services:
         result['elasticsearch'] = check_elasticsearch(ip)
     return result
 
@@ -97,39 +98,80 @@ def check_ip(ip, services):
 def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-i', '--ip', help='单个IP地址进行检测')
+    group.add_argument('-i', '--ip', type=str, help='单个IP地址进行检测')
     group.add_argument('-f', '--file', help='包含IP地址的文件进行检测')
-    parser.add_argument('-s', '--service', choices=choices, help='指定要检测的服务')
+    # choices表示可选参数，并且可选的范围由all_choices限定
+    parser.add_argument('-s', '--service', choices=all_choices, help='指定要检测的服务')
+    # 对于True/False类型的参数，向add_argument方法中加入参数action=‘store_true’/‘store_false’
+    # store_true就代表着一旦有这个参数，做出动作“将其值标为True”，也就是没有时，默认状态下其值为False
+    parser.add_argument('-au', '--auto', action='store_true', help='根据端口测试服务')
     parser.add_argument('-a', '--all', action='store_true', help='测试所有支持的服务')
     parser.add_argument('-t', '--threads', type=int, default=10, help='指定线程数')
     parser.add_argument('-o', '--output', help='指定输出文件路径')
     args = parser.parse_args()
 
     services = []
-    if args.service:
-        services.append(args.service)
-    elif args.all:
-        services = None
-
-    results = []
-
-    def worker(ip):
-        result = check_ip(ip, services)
-        results.append(result)
-
+    ipmap = {}
     if args.ip:
-        print('\n[*]已加载{0}条检测函数\n'.format(len(choices)))
-        print('\n[*] starting {0}\n'.format(get_time()))
-        worker(args.ip)
+        if ':' not in args.ip:
+            ip = args.ip
+        else:
+            ip = (args.ip.split(':')[0]).strip()
+        ipmap[ip] = set()
     else:
         with open(args.file, 'r') as f:
-            ips = f.read().splitlines()
+            # ips = f.read().splitlines()
+            for line in f:
+                if ':' not in line:
+                    ip = line.strip()
+                else:
+                    ip = (line.split(':')[0]).strip()
+                if ip not in ipmap:
+                        ipmap[ip] = set()
+    if args.service:
+        for ip in ipmap.keys():
+            ipmap[ip].add(args.service)
+        # services.append(args.service)
+    elif args.all:
+        for ip in ipmap.keys():
+            ipmap[ip].update(all_choices)
+        # services = [service for service in all_choices]
+    elif args.auto:
+        with open(args.file, 'r') as f:
+            # ips = f.read().splitlines()
+            for line in f:
+                ip = (line.split(':')[0]).strip()
+                port = (line.split(':')[1]).strip()
+                if port not in service_map.keys():
+                    continue
+                if type(service_map[port]) == list:
+                    ipmap[ip].update(service_map[port])
+                else:
+                    ipmap[ip].add(service_map[port])
 
-        threads = []
-        print('\n[*]已加载{0}条检测函数\n'.format(len(choices)))
-        print('\n[*] starting {0}\n'.format(get_time()))
-        for ip in ips:
-            t = threading.Thread(target=worker, args=(ip,))
+    lock1 = threading.Lock()
+    lock2 = threading.Lock()
+
+    # results = dict()
+    def worker(ip_t, service_t):
+        result = check_ip(ip_t, service_t)
+
+        # 多线程同步
+        lock1.acquire()
+        if ip_t not in results:
+            results[ip] = dict()
+        results[ip].update(result)
+        lock1.release()
+        # else:
+        #     results[ip].append(result)
+        # results.append({ip_t:result})
+    
+    threads = []
+    for ip in ipmap.keys():
+        results = dict()
+        print(f'[*] 开始检测{ip}, {len(ipmap[ip])}条检测函数')
+        for service in ipmap[ip]:
+            t = threading.Thread(target=worker, args=(ip,service,))
             threads.append(t)
             t.start()
             if len(threads) >= args.threads:
@@ -137,18 +179,48 @@ def main():
                     t.join()
                 threads.clear()
 
-        for t in threads:
-            t.join()
+        lock2.acquire()
+        # 每次扫描完一个ip就进行输出
+        if args.output:
+            with open(args.output, 'a+') as f:
+                results_json = json.dumps(results, sort_keys=False, indent=4, separators=(',', ': '), ensure_ascii=False)
+                f.write(results_json+'\n')
+                # for result in results:
+                #     f.write(str(result) + '\n')
+        else:
+            results_json = json.dumps(results, sort_keys=False, indent=4, separators=(',', ': '), ensure_ascii=False)
+            print(results_json+'\n')
+        lock2.release()
 
-    if args.output:
-        print('\n[+] ending {0}\n'.format(get_time()))
-        with open(args.output, 'w') as f:
-            for result in results:
-                f.write(str(result) + '\n')
-    else:
-        print('\n[+] ending {0}\n'.format(get_time()))
-        for result in results:
-            print(result)
+    for t in threads:
+        t.join()
+    print('\n[+] ending {0}\n'.format(get_time()))
+    # if args.ip:
+    #     print('\n[*]已加载{0}条检测函数\n'.format(len(services)))
+    #     print('\n[*] starting {0}\n'.format(get_time()))
+    #     worker(args.ip, services)
+    # else:
+    #     with open(args.file, 'r') as f:
+    #         ips = f.read().splitlines()
+
+    #     threads = []
+    #     print('\n[*]已加载{0}条检测函数\n'.format(len(services)))
+    #     print('\n[*] starting {0}\n'.format(get_time()))
+    #     for ip in ips:
+    #         t = threading.Thread(target=worker, args=(ip,))
+    #         threads.append(t)
+    #         t.start()
+    #         if len(threads) >= args.threads:
+    #             for t in threads:
+    #                 t.join()
+    #             threads.clear()
+
+    #     for t in threads:
+    #         t.join()
+
+
+        # for result in results:
+        #     print(result)
 
 
 if __name__ == '__main__':
